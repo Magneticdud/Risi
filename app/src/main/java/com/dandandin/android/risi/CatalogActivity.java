@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.pets;
+package com.dandandin.android.risi;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,7 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 /**
- * Displays list of pets that were entered and stored in the app.
+ * Displays list of risi that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
 

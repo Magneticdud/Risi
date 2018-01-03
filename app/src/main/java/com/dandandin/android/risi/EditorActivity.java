@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.pets;
+package com.dandandin.android.risi;
 
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
