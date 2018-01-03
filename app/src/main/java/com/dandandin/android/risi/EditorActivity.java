@@ -27,6 +27,8 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.dandandin.android.risi.data.RiceContract.RiceEntry;
+
 /**
  * Allows user to create a new pet or edit an existing one.
  */
@@ -48,7 +50,7 @@ public class EditorActivity extends AppCompatActivity {
      * Packaging of the rice. The possible values are:
      * 0 for vacuum, 1 for carton, 2 for vacuum in carton, 3 for bag.
      */
-    private int mGender = 0;
+    private int mPackaging = RiceEntry.PACK_VACUUM;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,12 +87,14 @@ public class EditorActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
-                    if (selection.equals(getString(R.string.gender_male))) {
-                        mGender = 1; // Male
-                    } else if (selection.equals(getString(R.string.gender_female))) {
-                        mGender = 2; // Female
+                    if (selection.equals(getString(R.string.package_vacuum))) {
+                        mPackaging = RiceEntry.PACK_VACUUM; // Vacuum
+                    } else if (selection.equals(getString(R.string.package_carton))) {
+                        mPackaging = RiceEntry.PACK_CARTON; // Carton
+                    } else if (selection.equals(getString(R.string.package_vacuumcarton))) {
+                        mPackaging = RiceEntry.PACK_VACUUMCARTON; // Vacuum and Carton
                     } else {
-                        mGender = 0; // Unknown
+                        mPackaging = RiceEntry.PACK_BAG; // Bag
                     }
                 }
             }
@@ -98,7 +102,7 @@ public class EditorActivity extends AppCompatActivity {
             // Because AdapterView is an abstract class, onNothingSelected must be defined
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                mGender = 0; // Unknown
+                mPackaging = RiceEntry.PACK_VACUUM; // Vacuum
             }
         });
     }
