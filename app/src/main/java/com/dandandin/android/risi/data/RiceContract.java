@@ -14,7 +14,7 @@ public final class RiceContract {
         public final static String _ID = BaseColumns._ID;
         //nome commerciale
         public static final String COLUMN_RICE_NAME = "name";
-        //prezzo di vendita (era: pet weight)
+        //prezzo di vendita in centesimi (era: pet weight)
         public static final String COLUMN_PRICE = "price";
         //tipo di riso (breed)
         public static final String COLUMN_BREED = "breed";

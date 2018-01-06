@@ -15,12 +15,14 @@
  */
 package com.dandandin.android.risi;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,10 +31,15 @@ import android.widget.TextView;
 import com.dandandin.android.risi.data.RiceDbHelper;
 import com.dandandin.android.risi.data.RiceContract.RiceEntry;
 
+import static com.dandandin.android.risi.data.RiceDbHelper.LOG_TAG;
+
 /**
  * Displays list of risi that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
+
+    //Database helper that will provide us access to the database
+    private RiceDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +55,11 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        // To access our database, we instantiate our subclass of SQLiteOpenHelper
+        // and pass the context, which is the current activity.
+        mDbHelper = new RiceDbHelper(this);
+
         displayDatabaseInfo();
     }
 
@@ -56,10 +68,6 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        RiceDbHelper mDbHelper = new RiceDbHelper(this);
-
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
@@ -70,7 +78,7 @@ public class CatalogActivity extends AppCompatActivity {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_rice);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            displayView.setText("Number of rows in rice database table: " + cursor.getCount());
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
@@ -86,13 +94,37 @@ public class CatalogActivity extends AppCompatActivity {
         return true;
     }
 
+    private void insertDummyRices(){
+        // Gets the database in write mode
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        // Create a ContentValues object where column names are the keys,
+        // and some rice attributes are the values.
+        ContentValues values = new ContentValues();
+        values.put(RiceEntry.COLUMN_RICE_NAME, "Conad Integrale");
+        values.put(RiceEntry.COLUMN_BREED, "Parboiled Integrale");
+        values.put(RiceEntry.COLUMN_PACKAGING, RiceEntry.PACK_VACUUMCARTON);
+        values.put(RiceEntry.COLUMN_PRICE,240);
+
+        // Insert a new row for our sample rice in the database, returning the ID of that new row.
+        // The first argument for db.insert() is the pets table name.
+        // The second argument provides the name of a column in which the framework
+        // can insert NULL in the event that the ContentValues is empty (if
+        // this is set to "null", then the framework will not insert a row when
+        // there are no values).
+        // The third argument is the ContentValues object containing the info for Toto.
+        long newRowId = db.insert(RiceEntry.TABLE_NAME, null, values);
+        Log.v(LOG_TAG,"result from db insert: "+newRowId);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // User clicked on a menu option in the app bar overflow menu
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
-                // Do nothing for now
+                insertDummyRices();
+                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
