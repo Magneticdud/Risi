@@ -37,6 +37,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.dandandin.android.risi.CatalogActivity" />
         </activity>
+        <provider
+            android:name=".data.RiceProvider"
+            android:authorities="com.dandandin.android.risi"
+            android:exported="false" />
     </application>
 
 </manifest>
