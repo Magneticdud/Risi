@@ -1,5 +1,6 @@
 package com.dandandin.android.risi.data;
 
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 public final class RiceContract {
@@ -7,7 +8,13 @@ public final class RiceContract {
     //To prevent someone from accidentally instantiating the contract class, give it an empty constructor.
     private RiceContract(){}
 
+    public static final String CONTENT_AUTHORITY = "com.dandandin.android.risi";
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+    public static final String PATH_RICE = "rices";
+
     public static final class RiceEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_RICE);
 
         //nome tabella
         public static final String TABLE_NAME = "rices";
