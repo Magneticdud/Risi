@@ -94,11 +94,36 @@ public class CatalogActivity extends AppCompatActivity {
                 null,                  // Don't filter by row groups
                 null);                   // The sort order
 
+        TextView displayView = (TextView) findViewById(R.id.text_view_rice);
+
         try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            TextView displayView = (TextView) findViewById(R.id.text_view_rice);
-            displayView.setText("Number of rows in rice database table: " + cursor.getCount());
+            // Create a header in the Text View that looks like this:
+            //
+            // The rice table contains <number of rows in Cursor> rice.
+            // _id - name - breed - package - price (in cents)
+            //
+            // In the while loop below, iterate through the rows of the cursor and display
+            // the information from each column in this order.
+            displayView.setText("The rice table contains " + cursor.getCount() + " rices.\n\n");
+            displayView.append(RiceEntry._ID + " - " +
+                    RiceEntry.COLUMN_RICE_NAME + "\t" + RiceEntry.COLUMN_BREED + "\n");
+
+            // Figure out the index of each column
+            int idColumnIndex = cursor.getColumnIndex(RiceEntry._ID);
+            int nameColumnIndex = cursor.getColumnIndex(RiceEntry.COLUMN_RICE_NAME);
+            int breedColumnIndex = cursor.getColumnIndex(RiceEntry.COLUMN_BREED);
+
+            // Iterate through all the returned rows in the cursor
+            while (cursor.moveToNext()) {
+                // Use that index to extract the String or Int value of the word
+                // at the current row the cursor is on.
+                int currentID = cursor.getInt(idColumnIndex);
+                String currentName = cursor.getString(nameColumnIndex);
+                String currentBreed = cursor.getString(breedColumnIndex);
+                // Display the values from each column of the current row in the cursor in the TextView
+                displayView.append(("\n" + currentID + " - " +
+                        currentName + "\t" + currentBreed));
+            }
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
