@@ -71,11 +71,11 @@ public class RiceProvider extends ContentProvider {
                 // For the RICES code, query the risi table directly with the given
                 // projection, selection, selection arguments, and sort order. The cursor
                 // could contain multiple rows of the risi table.
-                // TODO: Perform database query on risi table
+                cursor = database.query(RiceEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
             case RICE_ID:
                 // For the RICE_ID code, extract out the ID from the URI.
-                // For an example URI such as "content://com.example.android.pets/pets/3",
+                // For an example URI such as "content://com.dandandin.android.risi/rice/3",
                 // the selection will be "_id=?" and the selection argument will be a
                 // String array containing the actual ID of 3 in this case.
                 //
@@ -85,7 +85,7 @@ public class RiceProvider extends ContentProvider {
                 selection = RiceEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
 
-                // This will perform a query on the pets table where the _id equals 3 to return a
+                // This will perform a query on the risi table where the _id equals 3 to return a
                 // Cursor containing that row of the table.
                 cursor = database.query(RiceEntry.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
