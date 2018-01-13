@@ -62,4 +62,6 @@
 
     <!-- Label for dropdown menu option if the pet is female [CHAR LIMIT=20] -->
     <string name="package_bag">Bag</string>
+
+    <string name="unknown_breed">Rice variant not specified</string>
 </resources>

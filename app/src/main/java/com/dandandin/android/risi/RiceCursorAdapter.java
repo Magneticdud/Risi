@@ -2,6 +2,7 @@ package com.dandandin.android.risi;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,6 +66,11 @@ public class RiceCursorAdapter extends CursorAdapter {
         // Read the pet attributes from the Cursor for the current rice
         String riceName = cursor.getString(nameColumnIndex);
         String riceBreed = cursor.getString(breedColumnIndex);
+
+        //show a placeholder if the rice breed is empty
+        if (TextUtils.isEmpty(riceBreed)) {
+            riceBreed = context.getString(R.string.unknown_breed);
+        }
 
         // Update the TextViews with the attributes for the current rice
         nameTextView.setText(riceName);
