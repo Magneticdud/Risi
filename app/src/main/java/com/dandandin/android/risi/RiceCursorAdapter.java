@@ -2,9 +2,13 @@ package com.dandandin.android.risi;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
+import android.widget.TextView;
+
+import com.dandandin.android.risi.data.RiceContract.RiceEntry;
 
 /**
  * {@link RiceCursorAdapter} is an adapter for a list or grid view
@@ -34,8 +38,8 @@ public class RiceCursorAdapter extends CursorAdapter {
      */
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        // TODO: Fill out this method and return the list item view (instead of null)
-        return null;
+        // Inflate a list item view using the layout specified in list_item.xml
+        return LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
     }
 
     /**
@@ -50,6 +54,20 @@ public class RiceCursorAdapter extends CursorAdapter {
      */
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        // TODO: Fill out this method
+        // Find individual views that we want to modify in the list item layout
+        TextView nameTextView = (TextView) view.findViewById(R.id.name);
+        TextView summaryTextView = (TextView) view.findViewById(R.id.summary);
+
+        // Find the columns of pet attributes that we're interested in
+        int nameColumnIndex = cursor.getColumnIndex(RiceEntry.COLUMN_RICE_NAME);
+        int breedColumnIndex = cursor.getColumnIndex(RiceEntry.COLUMN_BREED);
+
+        // Read the pet attributes from the Cursor for the current rice
+        String riceName = cursor.getString(nameColumnIndex);
+        String riceBreed = cursor.getString(breedColumnIndex);
+
+        // Update the TextViews with the attributes for the current rice
+        nameTextView.setText(riceName);
+        summaryTextView.setText(riceBreed);
     }
 }
