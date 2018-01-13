@@ -15,9 +15,11 @@
  */
 package com.dandandin.android.risi;
 
+import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -28,6 +30,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -66,6 +69,19 @@ public class EditorActivity extends AppCompatActivity implements
      */
     private int mPackaging = RiceEntry.PACK_VACUUM;
 
+    /** Boolean flag that keeps track of whether the pet has been edited (true) or not (false) */
+    private boolean mRiceHasChanged = false;
+    /**
+     * OnTouchListener that listens for any user touches on a View, implying that they are modifying
+     * the view, and we change the mPetHasChanged boolean to true. */
+    private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            mRiceHasChanged = true;
+            return false;
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,6 +107,14 @@ public class EditorActivity extends AppCompatActivity implements
         mBreedEditText = (EditText) findViewById(R.id.edit_rice_breed);
         mPriceEditText = (EditText) findViewById(R.id.edit_rice_weight);
         mPackagingSpinner = (Spinner) findViewById(R.id.spinner_packaging);
+
+        // Setup OnTouchListeners on all the input fields, so we can determine if the user
+        // has touched or modified them. This will let us know if there are unsaved changes
+        // or not, if the user tries to leave the editor without saving.
+        mNameEditText.setOnTouchListener(mTouchListener);
+        mBreedEditText.setOnTouchListener(mTouchListener);
+        mPriceEditText.setOnTouchListener(mTouchListener);
+        mPackagingSpinner.setOnTouchListener(mTouchListener);
 
         setupSpinner();
     }
@@ -144,8 +168,16 @@ public class EditorActivity extends AppCompatActivity implements
         // Use trim to eliminate leading or trailing white space
         String nameString = mNameEditText.getText().toString().trim();
         String breedString = mBreedEditText.getText().toString().trim();
-        String weightString = mPriceEditText.getText().toString().trim();
-        int weight = Integer.parseInt(weightString);
+        String priceString = mPriceEditText.getText().toString().trim();
+
+        // Check if this is supposed to be a new rice and check if all the fields in the editor are blank
+        if (mCurrentRiceUri == null &&
+                TextUtils.isEmpty(nameString) && TextUtils.isEmpty(breedString) &&
+                TextUtils.isEmpty(priceString) && mPackaging == RiceEntry.PACK_VACUUM) {
+            // Since no fields were modified, we can return early without creating a new pet.
+            // No need to create ContentValues and no need to do any ContentProvider operations.
+            return;
+        }
 
         // Create a ContentValues object where column names are the keys,
         // and pet attributes from the editor are the values.
@@ -153,7 +185,14 @@ public class EditorActivity extends AppCompatActivity implements
         values.put(RiceEntry.COLUMN_RICE_NAME, nameString);
         values.put(RiceEntry.COLUMN_BREED, breedString);
         values.put(RiceEntry.COLUMN_PACKAGING, mPackaging);
-        values.put(RiceEntry.COLUMN_PRICE, weight);
+        values.put(RiceEntry.COLUMN_PRICE, priceString);
+
+        // If the price is not provided by the user, don't try to parse the string into an integer value. Use 0 by default.
+        int price = 0;
+        if (!TextUtils.isEmpty(priceString)) {
+            price = Integer.parseInt(priceString);
+        }
+        values.put(RiceEntry.COLUMN_PRICE,price);
 
         //vediamo se è un nuovo riso o una modifica di uno esistente
         if (mCurrentRiceUri==null){
@@ -213,11 +252,46 @@ public class EditorActivity extends AppCompatActivity implements
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
-                // Navigate back to parent activity (CatalogActivity)
-                NavUtils.navigateUpFromSameTask(this);
+                // If the rice hasn't changed, continue with navigating up to parent activity
+                if (!mRiceHasChanged) {
+                    NavUtils.navigateUpFromSameTask(EditorActivity.this);
+                    return true;
+                }
+                // Otherwise if there are unsaved changes, setup a dialog to warn the user.
+                // Create a click listener to handle the user confirming that changes should be discarded.
+                DialogInterface.OnClickListener discardButtonClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // User clicked "Discard" button, navigate to parent activity.
+                        NavUtils.navigateUpFromSameTask(EditorActivity.this);
+                    }
+                };
+                // Show a dialog that notifies the user they have unsaved changes
+                showUnsavedChangesDialog(discardButtonClickListener);
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    //This method is called when the back button is pressed.
+    @Override
+    public void onBackPressed() {
+        // If the pet hasn't changed, continue with handling back button press
+        if (!mRiceHasChanged) {
+            super.onBackPressed();
+            return;
+        }
+        // Otherwise if there are unsaved changes, setup a dialog to warn the user.
+        // Create a click listener to handle the user confirming that changes should be discarded.
+        DialogInterface.OnClickListener discardButtonClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // User clicked "Discard" button, close the current activity.
+                finish();
+            }
+        };
+        // Show dialog that there are unsaved changes
+        showUnsavedChangesDialog(discardButtonClickListener);
     }
 
     @Override
@@ -295,5 +369,30 @@ public class EditorActivity extends AppCompatActivity implements
         mBreedEditText.setText("");
         mPriceEditText.setText("");
         mPackagingSpinner.setSelection(0); // Select "Vacuum" packaging
+    }
+
+    /**
+     * Show a dialog that warns the user there are unsaved changes that will be lost
+     * if they continue leaving the editor.
+     * @param discardButtonClickListener is the click listener for what to do when
+     *                                   the user confirms they want to discard their changes */
+    private void showUnsavedChangesDialog(
+            DialogInterface.OnClickListener discardButtonClickListener) {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the positive and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("You have unsaved changes");
+        builder.setPositiveButton("Discard", discardButtonClickListener);
+        builder.setNegativeButton("Keep editing", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Keep editing" button, so dismiss the dialog and continue editing
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }
