@@ -37,7 +37,7 @@
     <string name="category_packaging">Packaging</string>
 
     <!-- Label for measurement information in the editor [CHAR LIMIT=30] -->
-    <string name="category_measurement">Measurement</string>
+    <string name="category_measurement">Price</string>
 
     <!-- Text hint for name field in the editor [CHAR LIMIT=30] -->
     <string name="hint_rice_name">Name</string>
@@ -46,10 +46,10 @@
     <string name="hint_rice_breed">Breed</string>
 
     <!-- Text hint for name field in the editor [CHAR LIMIT=30] -->
-    <string name="hint_rice_weight">Weight</string>
+    <string name="hint_rice_weight">Price</string>
 
     <!-- Units for weight of the rice box (grams) [CHAR LIMIT=5] -->
-    <string name="unit_rice_weight">g</string>
+    <string name="unit_rice_weight">€</string>
 
     <!-- Label for dropdown menu option if the rice package [CHAR LIMIT=20] -->
     <string name="package_vacuum">Vacuum sealed</string>

@@ -137,9 +137,9 @@ public class EditorActivity extends AppCompatActivity implements
     }
 
     /**
-     * Get user input from editor and save new rice info into database.
+     * Get user input from editor and save rice info into database.
      */
-    private void insertRice() {
+    private void saveRice() {
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
         String nameString = mNameEditText.getText().toString().trim();
@@ -155,17 +155,36 @@ public class EditorActivity extends AppCompatActivity implements
         values.put(RiceEntry.COLUMN_PACKAGING, mPackaging);
         values.put(RiceEntry.COLUMN_PRICE, weight);
 
-        // Insert a new rice into the provider, returning the content URI for the new rice.
-        Uri newUri = getContentResolver().insert(RiceEntry.CONTENT_URI, values);
+        //vediamo se è un nuovo riso o una modifica di uno esistente
+        if (mCurrentRiceUri==null){
+            // è nuovo! Insert a new rice into the provider, returning the content URI for the new rice.
+            Uri newUri = getContentResolver().insert(RiceEntry.CONTENT_URI, values);
 
-        // Show a toast message depending on whether or not the insertion was successful
-        if (newUri == null) {
-            // If the row ID is null, then there was an error with insertion.
-            Toast.makeText(this, "Error with saving rice", Toast.LENGTH_SHORT).show();
-        } else {
-            // Otherwise, the insertion was successful and we can display a toast with the row ID.
-            Toast.makeText(this, "Rice saved", Toast.LENGTH_SHORT).show();
+            // Show a toast message depending on whether or not the insertion was successful
+            if (newUri == null) {
+                // If the row ID is null, then there was an error with insertion.
+                Toast.makeText(this, "Error with saving rice", Toast.LENGTH_SHORT).show();
+            } else {
+                // Otherwise, the insertion was successful and we can display a toast with the row ID.
+                Toast.makeText(this, "Rice saved", Toast.LENGTH_SHORT).show();
+            }
         }
+        else {
+            // Otherwise this is an EXISTING rice, so update it with content URI: mCurrentRiceUri
+            // and pass in the new ContentValues. Pass in null for the selection and selection args
+            // because mCurrentRiceUri will already identify the correct row in the database that we want to modify.
+            int rowsAffected = getContentResolver().update(mCurrentRiceUri, values, null, null);
+            // Show a toast message depending on whether or not the update was successful.
+            if (rowsAffected == 0) {
+                // If no rows were affected, then there was an error with the update.
+                Toast.makeText(this, "Error updating rice",Toast.LENGTH_SHORT).show();
+            } else {
+                // Otherwise, the update was successful and we can display a toast.
+                Toast.makeText(this, "Edited",Toast.LENGTH_SHORT).show();
+            }
+        }
+
+
     }
 
 
@@ -184,7 +203,7 @@ public class EditorActivity extends AppCompatActivity implements
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
                 //salva i dati
-                insertRice();
+                saveRice();
                 //esci dall'activity
                 finish();
                 return true;
