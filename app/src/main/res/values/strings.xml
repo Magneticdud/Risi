@@ -20,8 +20,9 @@
     <!-- Label for overflow menu option that deletes all pet data in the app [CHAR LIMIT=20] -->
     <string name="action_delete_all_entries">Delete All Rice</string>
 
-    <!-- Title for the activity to add a new pet [CHAR LIMIT=20] -->
-    <string name="editor_activity_title_new_pet">Add a Rice</string>
+    <!-- Title for the activity to add a new rice [CHAR LIMIT=20] -->
+    <string name="editor_activity_title_new_rice">Add a Rice</string>
+    <string name="editor_activity_title_edit_rice">Edit a Rice</string>
 
     <!-- Label for editor menu option to save pet and leave editor [CHAR LIMIT=20] -->
     <string name="action_save">Save</string>

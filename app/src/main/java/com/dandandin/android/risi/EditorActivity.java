@@ -16,6 +16,7 @@
 package com.dandandin.android.risi;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
@@ -60,6 +61,19 @@ public class EditorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
+
+        // Examine the intent that was used to launch this activity,
+        // in order to figure out if we're creating a new pet or editing an existing one.
+        Intent intent = getIntent();
+        Uri currentRiceUri = intent.getData();
+        // If the intent DOES NOT contain a pet content URI, then we know that we are creating a new rice.
+        if (currentRiceUri == null) {
+            // This is a new rice, so change the app bar to say "Add a Rice"
+            setTitle(getString(R.string.editor_activity_title_new_rice));
+        } else {
+            // Otherwise this is an existing pet, so change app bar to say "Edit Pet"
+            setTitle(getString(R.string.editor_activity_title_edit_rice));
+        }
 
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_rice_name);
