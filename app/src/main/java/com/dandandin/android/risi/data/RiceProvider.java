@@ -104,7 +104,15 @@ public class RiceProvider extends ContentProvider {
     //Returns the MIME type of data for the content URI.
     @Override
     public String getType(Uri uri) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case RICES:
+                return RiceEntry.CONTENT_LIST_TYPE;
+            case RICE_ID:
+                return RiceEntry.CONTENT_ITEM_TYPE;
+            default:
+                throw new IllegalStateException("Unknown URI " + uri + " with match " + match);
+        }
     }
 
     //Insert new data into the provider with the given ContentValues.
