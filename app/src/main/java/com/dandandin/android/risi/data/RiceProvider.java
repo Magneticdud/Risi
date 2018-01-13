@@ -7,9 +7,14 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
+
 import com.dandandin.android.risi.data.RiceContract.RiceEntry;
 
 public class RiceProvider extends ContentProvider {
+    /** Tag for the log messages */
+    public static final String LOG_TAG = RiceProvider.class.getSimpleName();
+
     /** URI matcher code for the content URI for the rice table */
     private static final int RICES = 100;
 
@@ -105,7 +110,34 @@ public class RiceProvider extends ContentProvider {
     //Insert new data into the provider with the given ContentValues.
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case RICES:
+                return insertRice(uri, contentValues);
+            default:
+                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+        }
+    }
+
+    /**
+     * Insert a rice into the database with the given content values. Return the new content URI
+     * for that specific row in the database.
+     */
+    private Uri insertRice(Uri uri, ContentValues values) {
+        // Get writeable database
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        // Insert the new rice with the given values
+        long id = database.insert(RiceEntry.TABLE_NAME, null, values);
+        // If the ID is -1, then the insertion failed. Log an error and return null.
+        if (id == -1) {
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+
+        // Once we know the ID of the new row in the table,
+        // return the new URI with the ID appended to the end of it
+        return ContentUris.withAppendedId(uri, id);
     }
 
     //Delete the data at the given selection and selection arguments.
