@@ -15,9 +15,12 @@
  */
 package com.dandandin.android.risi;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
+import android.content.Loader;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -37,7 +40,13 @@ import com.dandandin.android.risi.data.RiceContract.RiceEntry;
 /**
  * Allows user to create a new pet or edit an existing one.
  */
-public class EditorActivity extends AppCompatActivity {
+public class EditorActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<Cursor> {
+    /** Identifier for the pet data loader */
+    private static final int EXISTING_RICE_LOADER = 0;
+
+    /** Content URI for the existing pet (null if it's a new pet) */
+    private Uri mCurrentRiceUri;
 
     /** EditText field to enter the rice name */
     private EditText mNameEditText;
@@ -65,14 +74,16 @@ public class EditorActivity extends AppCompatActivity {
         // Examine the intent that was used to launch this activity,
         // in order to figure out if we're creating a new pet or editing an existing one.
         Intent intent = getIntent();
-        Uri currentRiceUri = intent.getData();
+        mCurrentRiceUri = intent.getData();
         // If the intent DOES NOT contain a pet content URI, then we know that we are creating a new rice.
-        if (currentRiceUri == null) {
+        if (mCurrentRiceUri == null) {
             // This is a new rice, so change the app bar to say "Add a Rice"
             setTitle(getString(R.string.editor_activity_title_new_rice));
         } else {
-            // Otherwise this is an existing pet, so change app bar to say "Edit Pet"
+            // Otherwise this is an existing rice, so change app bar to say "Edit Rice"
             setTitle(getString(R.string.editor_activity_title_edit_rice));
+            // Initialize a loader to read the pet data from the database and display the current values in the editor
+            getLoaderManager().initLoader(EXISTING_RICE_LOADER, null, this);
         }
 
         // Find all relevant views that we will need to read user input from
@@ -188,5 +199,82 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        // Since the editor shows all rice attributes, define a projection that contains all columns from the rice table
+        String[] projection = {
+                RiceEntry._ID,
+                RiceEntry.COLUMN_RICE_NAME,
+                RiceEntry.COLUMN_BREED,
+                RiceEntry.COLUMN_PACKAGING,
+                RiceEntry.COLUMN_PRICE };
+
+        // This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,   // Parent activity context
+                mCurrentRiceUri,         // Query the content URI for the current rice
+                projection,             // Columns to include in the resulting Cursor
+                null,                   // No selection clause
+                null,                   // No selection arguments
+                null);                  // Default sort order
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        // Bail early if the cursor is null or there is less than 1 row in the cursor
+        if (cursor == null || cursor.getCount() < 1) {
+            return;
+        }
+
+        // Proceed with moving to the first row of the cursor and reading data from it
+        // (This should be the only row in the cursor)
+        if (cursor.moveToFirst()) {
+            // Find the columns of pet attributes that we're interested in
+            int nameColumnIndex = cursor.getColumnIndex(RiceEntry.COLUMN_RICE_NAME);
+            int breedColumnIndex = cursor.getColumnIndex(RiceEntry.COLUMN_BREED);
+            int packColumnIndex = cursor.getColumnIndex(RiceEntry.COLUMN_PACKAGING);
+            int priceColumnIndex = cursor.getColumnIndex(RiceEntry.COLUMN_PRICE);
+
+            // Extract out the value from the Cursor for the given column index
+            String name = cursor.getString(nameColumnIndex);
+            String breed = cursor.getString(breedColumnIndex);
+            int pack = cursor.getInt(packColumnIndex);
+            int price = cursor.getInt(priceColumnIndex);
+
+            // Update the views on the screen with the values from the database
+            mNameEditText.setText(name);
+            mBreedEditText.setText(breed);
+            mPriceEditText.setText(Integer.toString(price));
+
+            // Packaging is a dropdown spinner, so map the constant value from the database into one of the dropdown options
+            // Then call setSelection() so that option is displayed on screen as the current selection.
+            switch (pack) {
+                case RiceEntry.PACK_VACUUM:
+                    mPackagingSpinner.setSelection(0);
+                    break;
+                case RiceEntry.PACK_CARTON:
+                    mPackagingSpinner.setSelection(1);
+                    break;
+                case RiceEntry.PACK_VACUUMCARTON:
+                    mPackagingSpinner.setSelection(2);
+                    break;
+                case RiceEntry.PACK_BAG:
+                    mPackagingSpinner.setSelection(3);
+                    break;
+                default:
+                    mPackagingSpinner.setSelection(0);
+                    break;
+            }
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        // If the loader is invalidated, clear out all the data from the input fields.
+        mNameEditText.setText("");
+        mBreedEditText.setText("");
+        mPriceEditText.setText("");
+        mPackagingSpinner.setSelection(0); // Select "Vacuum" packaging
     }
 }
