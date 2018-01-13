@@ -168,7 +168,67 @@ public class RiceProvider extends ContentProvider {
 
     //Updates the data at the given selection and selection arguments, with the new ContentValues.
     @Override
-    public int update(Uri uri, ContentValues contentValues, String s, String[] strings) {
-        return 0;
+    public int update(Uri uri, ContentValues contentValues, String selection,
+                      String[] selectionArgs) {
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case RICES:
+                return updateRice(uri, contentValues, selection, selectionArgs);
+            case RICE_ID:
+                // For the RICE_ID code, extract out the ID from the URI,
+                // so we know which row to update. Selection will be "_id=?" and selection
+                // arguments will be a String array containing the actual ID.
+                selection = RiceEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                return updateRice(uri, contentValues, selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Update is not supported for " + uri);
+        }
+    }
+
+    /**
+     * Update rice in the database with the given content values. Apply the changes to the rows
+     * specified in the selection and selection arguments (which could be 0 or 1 or more pets).
+     * Return the number of rows that were successfully updated.
+     */
+    private int updateRice(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        // If the {@link PetEntry#COLUMN_PET_NAME} key is present,
+        // check that the name value is not null.
+        if (values.containsKey(RiceEntry.COLUMN_RICE_NAME)) {
+            String name = values.getAsString(RiceEntry.COLUMN_RICE_NAME);
+            if (name == null) {
+                throw new IllegalArgumentException("Rice requires a name");
+            }
+        }
+
+        // If the packaging key is present, check that's valid.
+        if (values.containsKey(RiceEntry.COLUMN_PACKAGING)) {
+            Integer pack = values.getAsInteger(RiceEntry.COLUMN_PACKAGING);
+            if (pack == null || !RiceEntry.isValidPackaging(pack)) {
+                throw new IllegalArgumentException("Rice requires valid pack");
+            }
+        }
+
+        // If the price key is present, check that is valid.
+        if (values.containsKey(RiceEntry.COLUMN_PRICE)) {
+            // Check that the weight is greater than or equal to 0 kg
+            Integer price = values.getAsInteger(RiceEntry.COLUMN_PRICE);
+            if (price != null && price < 0) {
+                throw new IllegalArgumentException("Rice requires valid price");
+            }
+        }
+
+        // No need to check the breed, any value is valid (including null).
+
+        // If there are no values to update, then don't try to update the database
+        if (values.size() == 0) {
+            return 0;
+        }
+
+        // Otherwise, get writeable database to update the data
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        // Returns the number of database rows affected by the update statement
+        return database.update(RiceEntry.TABLE_NAME, values, selection, selectionArgs);
     }
 }
