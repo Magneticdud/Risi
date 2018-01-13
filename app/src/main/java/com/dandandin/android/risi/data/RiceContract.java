@@ -38,5 +38,15 @@ public final class RiceContract {
         public static final int PACK_VACUUMCARTON = 2;
         public static final int PACK_BAG = 3;
 
+        /**
+        * Returns whether or not the given packaging is valid
+         */
+        public static boolean isValidPackaging(int pack) {
+            if (pack == PACK_VACUUM || pack == PACK_CARTON || pack == PACK_VACUUMCARTON || pack == PACK_BAG) {
+                return true;
+            }
+            return false;
+        }
+
     }
 }

@@ -124,6 +124,26 @@ public class RiceProvider extends ContentProvider {
      * for that specific row in the database.
      */
     private Uri insertRice(Uri uri, ContentValues values) {
+        // Check that the name is not null
+        String name = values.getAsString(RiceEntry.COLUMN_RICE_NAME);
+        if (name == null) {
+            throw new IllegalArgumentException("Rice requires a name");
+        }
+
+        // Check that the packaging is valid
+        Integer pack = values.getAsInteger(RiceEntry.COLUMN_PACKAGING);
+        if (pack == null || !RiceEntry.isValidPackaging(pack)) {
+            throw new IllegalArgumentException("Rice requires valid packaging");
+        }
+
+        // If the price is provided, check that it's greater than or equal to 0
+        Integer price = values.getAsInteger(RiceEntry.COLUMN_PRICE);
+        if (price != null && price < 0) {
+            throw new IllegalArgumentException("Rice requires valid price");
+        }
+
+        // No need to check the breed, any value is valid (including null).
+
         // Get writeable database
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
